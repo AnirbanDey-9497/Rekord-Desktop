@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain, desktopCapturer } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -35,7 +35,21 @@ app.on("activate", () => {
     createWindow();
   }
 });
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  ipcMain.handle("getSources", async () => {
+    try {
+      const sources = await desktopCapturer.getSources({
+        types: ["window", "screen"],
+        thumbnailSize: { width: 150, height: 150 }
+      });
+      return sources;
+    } catch (error) {
+      console.error("Error getting sources:", error);
+      throw error;
+    }
+  });
+  createWindow();
+});
 export {
   MAIN_DIST,
   RENDERER_DIST,
