@@ -5,6 +5,8 @@ import { ClerkLoading } from "@clerk/clerk-react";
 import { Spinner } from "../loader/spinner";
 import { fetchUserProfile } from "@/lib/utils";
 import { useMediaSources } from "@/hooks/useMediaSources";
+import { MediaConfiguration } from "@/components/Global/MediaConfiguration";
+
 const Widget = () => {
     const { user } = useUser()
     const { state, fetchMediaResources } = useMediaSources()
@@ -52,13 +54,13 @@ const Widget = () => {
             </div>
         </ClerkLoading>
         <SignedIn>
-        {/* {profile ? (
-          <MediaConfiguration state={state} user={profile?.user} />
+        {profile && profile.user ? (
+          <MediaConfiguration state={state} user={profile.user} />
         ) : (
           <div className="w-full h-full flex justify-center items-center">
             <Spinner color="#fff" />
           </div>
-        )} */}
+        )}
         </SignedIn>
     </div>
   )
