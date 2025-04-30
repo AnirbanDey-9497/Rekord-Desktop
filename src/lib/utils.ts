@@ -9,7 +9,7 @@ const httpClient = axios.create({
   baseURL: import.meta.env.VITE_HOST_URL,
 });
 
-export const onCloseApp = () => window.ipcRenderer.send("closeApp");
+export const onCloseApp = () => window.ipcRenderer.send("hideOrCloseWindow");
 
 export const fetchUserProfile = async (clerkid: string) => {
   const response = await httpClient.get(`/auth/${clerkid}`, {

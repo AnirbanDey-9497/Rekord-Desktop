@@ -124,8 +124,20 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
     win = null
+    studio = null
+    floatingWebCam = null
   }
 })
+
+ipcMain.on("closeApp", () => {
+  //only works on windows, mac does not need this
+  if (process.platform !== "darwin") {
+    app.quit();
+    win = null;
+    studio = null;
+    floatingWebCam = null;
+  }
+});
 
 app.on('activate', () => {
   // On OS X it's common to re-create a window in the app when the
@@ -151,4 +163,16 @@ app.whenReady().then(() => {
   });
   
   createWindow();
+});
+
+ipcMain.on("hideOrCloseWindow", (event) => {
+  const sender = event.sender;
+  const allWindows = BrowserWindow.getAllWindows();
+  const winToActOn = allWindows.find(w => w.webContents.id === sender.id);
+  if (!winToActOn) return;
+  if (process.platform === "darwin") {
+    winToActOn.hide();
+  } else {
+    winToActOn.close();
+  }
 });
