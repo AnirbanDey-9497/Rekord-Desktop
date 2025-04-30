@@ -9,6 +9,7 @@ const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
 let win;
 let studio;
+let floatingWebCam;
 function createWindow() {
   win = new BrowserWindow({
     width: 600,
@@ -46,7 +47,7 @@ function createWindow() {
       preload: path.join(__dirname, "preload.mjs")
     }
   });
-  new BrowserWindow({
+  floatingWebCam = new BrowserWindow({
     width: 400,
     height: 200,
     minHeight: 70,
@@ -81,9 +82,11 @@ function createWindow() {
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL);
     studio.loadURL("http://localhost:5173/studio.html");
+    floatingWebCam.loadURL("http://localhost:5173/floating-webcam.html");
   } else {
     win.loadFile(path.join(RENDERER_DIST, "index.html"));
     studio.loadFile(path.join(RENDERER_DIST, "studio.html"));
+    floatingWebCam.loadFile(path.join(RENDERER_DIST, "floating-webcam.html"));
   }
 }
 app.on("window-all-closed", () => {
