@@ -146,6 +146,7 @@ ipcMain.handle("getSources", async () => {
       fetchWindowIcons: true,
       types: ["window", "screen"],
     });
+    console.log(sources);
     return sources;
   } catch (error) {
     console.error("Error getting sources:", error);
