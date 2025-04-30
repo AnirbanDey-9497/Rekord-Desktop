@@ -1,4 +1,4 @@
-import { app, ipcMain, BrowserWindow, desktopCapturer } from "electron";
+import { app, ipcMain, desktopCapturer, BrowserWindow } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -105,24 +105,42 @@ ipcMain.on("closeApp", () => {
     floatingWebCam = null;
   }
 });
+ipcMain.handle("getSources", async () => {
+  try {
+    const sources = await desktopCapturer.getSources({
+      thumbnailSize: { height: 100, width: 150 },
+      fetchWindowIcons: true,
+      types: ["window", "screen"]
+    });
+    return sources;
+  } catch (error) {
+    console.error("Error getting sources:", error);
+    throw error;
+  }
+});
+ipcMain.on("media-sources", (event, payload) => {
+  console.log(event);
+  studio == null ? void 0 : studio.webContents.send("profile-recieved", payload);
+});
+ipcMain.on("resize-studio", (event, payload) => {
+  console.log(event);
+  if (payload.shrink) {
+    studio == null ? void 0 : studio.setSize(400, 100);
+  }
+  if (!payload.shrink) {
+    studio == null ? void 0 : studio.setSize(400, 250);
+  }
+});
+ipcMain.on("hide-plugin", (event, payload) => {
+  console.log(event);
+  win == null ? void 0 : win.webContents.send("hide-plugin", payload);
+});
 app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
   }
 });
 app.whenReady().then(() => {
-  ipcMain.handle("getSources", async () => {
-    try {
-      const sources = await desktopCapturer.getSources({
-        types: ["window", "screen"],
-        thumbnailSize: { width: 150, height: 150 }
-      });
-      return sources;
-    } catch (error) {
-      console.error("Error getting sources:", error);
-      throw error;
-    }
-  });
   createWindow();
 });
 ipcMain.on("hideOrCloseWindow", (event) => {

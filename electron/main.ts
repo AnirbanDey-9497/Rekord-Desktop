@@ -139,6 +139,40 @@ ipcMain.on("closeApp", () => {
   }
 });
 
+ipcMain.handle("getSources", async () => {
+  try {
+    const sources = await desktopCapturer.getSources({
+      thumbnailSize: { height: 100, width: 150 },
+      fetchWindowIcons: true,
+      types: ["window", "screen"],
+    });
+    return sources;
+  } catch (error) {
+    console.error("Error getting sources:", error);
+    throw error;
+  }
+});
+
+ipcMain.on("media-sources", (event, payload) => {
+  console.log(event);
+  studio?.webContents.send("profile-recieved", payload);
+});
+
+ipcMain.on("resize-studio", (event, payload) => {
+  console.log(event);
+  if (payload.shrink) {
+    studio?.setSize(400, 100);
+  }
+  if (!payload.shrink) {
+    studio?.setSize(400, 250);
+  }
+});
+
+ipcMain.on("hide-plugin", (event, payload) => {
+  console.log(event);
+  win?.webContents.send("hide-plugin", payload);
+});
+
 app.on('activate', () => {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
@@ -148,20 +182,6 @@ app.on('activate', () => {
 })
 
 app.whenReady().then(() => {
-  // Add the handler for getSources
-  ipcMain.handle('getSources', async () => {
-    try {
-      const sources = await desktopCapturer.getSources({
-        types: ['window', 'screen'],
-        thumbnailSize: { width: 150, height: 150 }
-      });
-      return sources;
-    } catch (error) {
-      console.error('Error getting sources:', error);
-      throw error;
-    }
-  });
-  
   createWindow();
 });
 
