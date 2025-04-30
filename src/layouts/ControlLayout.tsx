@@ -19,20 +19,20 @@ export const ControlLayout = ({ children, className }: ControlLayoutProps) => {
       className={cn(
         className,
         isVisible && "invisible",
-        "bg-[#171717] w-[400px] flex flex-col rounded-3xl overflow-hidden h-screen"
+        "bg-[#171717] w-[400px] flex flex-col rounded-3xl overflow-hidden shadow-none border-0 draggable"
       )}>
-      <div className="flex justify-between items-center p-5 draggable">
+      <div className="flex justify-between items-center p-5">
         <div className="flex items-center gap-x-2 non-draggable">
           <img src="/rekord.png" className="h-5" />
           <p className="text-white text-xl">Rekord</p>
         </div>
         <X
           size={20}
-          className="text-gray-400 non-draggable hover:text-white cursor-pointer"
+          className="text-gray-400 hover:text-white cursor-pointer non-draggable"
           onClick={onCloseApp}
         />
       </div>
-      <div className="flex-1 h-0 overflow-auto">{children}</div>
+      <div className="flex-1 overflow-auto non-draggable">{children}</div>
       <div className="p-5 flex w-full">
         <span className="non-draggable">
           <UserButton />
