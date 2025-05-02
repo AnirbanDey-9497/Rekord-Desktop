@@ -1,8 +1,12 @@
 import { v4 as uuid } from "uuid";
 import { hidePluginWindow } from "./utils";
+import io from "socket.io-client";
 
-// TODO: Implement socket.io connection when ready
-// const socket = io(import.meta.env.VITE_SOCKET_URL as string);
+// Configure Socket.IO client with options
+const socket = io(import.meta.env.VITE_SOCKET_URL as string, {
+  autoConnect: true,
+  transports: ['websocket', 'polling']
+});
 
 let mediaRecorder: MediaRecorder | null = null;
 let videoTransferFileName: string | undefined;
@@ -87,10 +91,10 @@ export const StartRecording = (onSources: {
 
 const onDataAvailable = (e: BlobEvent) => {
   // TODO: Implement socket.io video chunk sending
-  // socket.emit("video-chunks", {
-  //   chunks: e.data,
-  //   filename: videoTransferFileName,
-  // });
+  socket.emit("video-chunks", {
+    chunks: e.data,
+    filename: videoTransferFileName,
+  });
   console.log("Video chunk available:", e.data.size);
 };
 
@@ -103,9 +107,9 @@ export const onStopRecording = () => {
 const stopRecording = () => {
   hidePluginWindow(false);
   // TODO: Implement socket.io video processing
-  // socket.emit("process-video", {
-  //   filename: videoTransferFileName,
-  //   userId,
-  // });
+  socket.emit("process-video", {
+    filename: videoTransferFileName,
+    userId,
+  });
   console.log("Recording stopped:", videoTransferFileName);
 };
