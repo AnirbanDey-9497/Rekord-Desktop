@@ -2,9 +2,14 @@
 /* eslint-disable prefer-const */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { onStopRecording, selectSources, StartRecording } from "@/lib/recorder";
-import { cn, resizeWindow, videoRecordingTime } from "@/lib/utils";
+import { cn, resizeWindow, videoRecordingTime, getMediaSources } from "@/lib/utils";
 import { Cast, Pause, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+
+type DisplaySource = {
+  id: string;
+  name: string;
+};
 
 export const StudioTray = () => {
   let initialTime = new Date();
@@ -31,6 +36,53 @@ export const StudioTray = () => {
     setCount(0);
   };
 
+  // Load default sources on mount
+  useEffect(() => {
+    const loadDefaultSources = async () => {
+      try {
+        console.log("[StudioTray] Loading default sources");
+        const { displays, audio: audioInputs } = await getMediaSources();
+        
+        if (displays?.length && audioInputs?.length) {
+          // Prefer entire screen as default source
+          const defaultScreen = displays.find((d: DisplaySource) => d.id === 'screen:1:0') || displays[0];
+          
+          const defaultSources = {
+            screen: defaultScreen.id,
+            id: crypto.randomUUID(),
+            audio: audioInputs[0].deviceId,
+            preset: "SD" as const,
+            plan: "PRO" as const
+          };
+          
+          console.log("[StudioTray] Setting default sources:", defaultSources);
+          setOnSources(defaultSources);
+          
+          // Immediately try to select the sources
+          try {
+            await selectSources(defaultSources, videoElement);
+            setError(null);
+          } catch (err) {
+            console.error("[StudioTray] Failed to select default sources:", err);
+            setError("Failed to select default sources");
+          }
+          
+          setIsLoading(false);
+        } else {
+          console.error("[StudioTray] No available sources");
+          setError("No available sources");
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error("[StudioTray] Failed to load default sources:", error);
+        setError("Failed to load default sources");
+        setIsLoading(false);
+      }
+    };
+
+    loadDefaultSources();
+  }, []);
+
   // Handle IPC events
   useEffect(() => {
     console.log("[StudioTray] Setting up IPC listener");
@@ -38,21 +90,16 @@ export const StudioTray = () => {
       console.log("[StudioTray] Profile received:", payload);
       if (!payload) {
         console.error("[StudioTray] No profile data received");
-        setError("No profile data received");
-        setIsLoading(false);
         return;
       }
 
       if (!payload.screen || !payload.audio || !payload.id) {
         console.error("[StudioTray] Invalid profile data:", payload);
-        setError("Invalid profile data received");
-        setIsLoading(false);
         return;
       }
 
       setOnSources(payload);
       setError(null);
-      setIsLoading(false);
     };
 
     try {
@@ -60,8 +107,6 @@ export const StudioTray = () => {
       console.log("[StudioTray] IPC listener setup complete");
     } catch (error) {
       console.error("[StudioTray] Failed to setup IPC listener:", error);
-      setError("Failed to setup IPC listener");
-      setIsLoading(false);
     }
 
     return () => {

@@ -1,7 +1,7 @@
 import { updateStudioSettings } from "@/lib/utils";
 import { updateStudioSettingsSchema } from "@/schemas/studio-settings.schema";
 import { useMutation } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { useZodForm } from "./useZodForm";
 
@@ -12,13 +12,20 @@ export const useStudioSettings = (
   preset?: "HD" | "SD",
   plan?: "PRO" | "FREE"
 ) => {
-  const { register, watch } = useZodForm(updateStudioSettingsSchema, {
+  const { register, watch, setValue } = useZodForm(updateStudioSettingsSchema, {
     screen: screen!,
     audio: audio!,
     preset: preset!,
   });
 
   const [onPreset, setPreset] = useState<"HD" | "SD" | undefined>();
+
+  // Update form values when props change
+  useEffect(() => {
+    if (screen) setValue("screen", screen);
+    if (audio) setValue("audio", audio);
+    if (preset) setValue("preset", preset);
+  }, [screen, audio, preset, setValue]);
 
   const { mutate, isPending } = useMutation({
     mutationKey: ["update-studio"],
@@ -35,7 +42,7 @@ export const useStudioSettings = (
     },
   });
 
-  const sendMediaSources = (
+  const sendMediaSources = useCallback((
     screen: string,
     audio: string,
     preset: "HD" | "SD"
@@ -54,7 +61,7 @@ export const useStudioSettings = (
       preset,
       plan,
     });
-  };
+  }, [id, plan]);
 
   useEffect(() => {
     //set sources on mount
@@ -68,7 +75,7 @@ export const useStudioSettings = (
         preset,
       });
     }
-  }, [screen, audio, preset]);
+  }, [screen, audio, preset, sendMediaSources]);
 
   useEffect(() => {
     //set sources on change
@@ -92,7 +99,7 @@ export const useStudioSettings = (
       sendMediaSources(values.screen, values.audio, values.preset);
     });
     return () => subscribe.unsubscribe();
-  }, [watch]);
+  }, [watch, sendMediaSources, mutate, id]);
 
-  return { register, isPending, onPreset };
+  return { register, isPending, onPreset, sendMediaSources };
 };

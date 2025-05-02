@@ -21,6 +21,7 @@ function createWindow() {
     transparent: true,
     alwaysOnTop: false,
     focusable: true,
+    hasShadow: true,
     icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
     webPreferences: {
       nodeIntegration: false,
@@ -74,6 +75,7 @@ function createWindow() {
   });
   console.log("Floating webcam window created with ID:", floatingWebCam.id);
   console.log("Setting window properties...");
+  win.setWindowButtonVisibility(false);
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   win.setAlwaysOnTop(false, "screen-saver", 1);
   studio.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });

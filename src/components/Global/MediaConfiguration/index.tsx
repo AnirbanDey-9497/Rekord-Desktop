@@ -2,6 +2,7 @@ import { SourceDeviceStateProps } from "@/hooks/useMediaSources";
 import { useStudioSettings } from "@/hooks/useStudioSettings";
 import { Headphones, Monitor, Settings } from "lucide-react";
 import { Spinner } from "../loader/spinner";
+import { useEffect, useState } from "react";
 
 type UserType = {
   id: string;
@@ -38,21 +39,61 @@ export const MediaConfiguration = ({ user, state }: MediaConfigurationProps) => 
     );
   }
 
-  const activeScreen = state.displays?.find(
-    (screen) => screen.id === user.studio?.screen
-  );
+  const [selectedScreen, setSelectedScreen] = useState(user.studio?.screen || state.displays?.[0]?.id || '');
+  const [selectedAudio, setSelectedAudio] = useState(user.studio?.mic || state.audioInputs?.[0]?.deviceId || '');
+  const [selectedPreset, setSelectedPreset] = useState(user.studio?.preset || "SD");
 
-  const activeAudio = state.audioInputs?.find(
-    (device) => device.deviceId === user.studio?.mic
-  );
-
-  const { register, isPending, onPreset } = useStudioSettings(
+  const { register, isPending, onPreset, sendMediaSources } = useStudioSettings(
     user.id,
-    user.studio?.screen || state.displays?.[0]?.id,
-    user.studio?.mic || state.audioInputs?.[0]?.deviceId,
-    user.studio?.preset,
+    selectedScreen,
+    selectedAudio,
+    selectedPreset,
     user.subscription?.plan
   );
+
+  // Send initial sources when component mounts or when sources become available
+  useEffect(() => {
+    if (state.displays?.length && state.audioInputs?.length) {
+      const initialScreen = user.studio?.screen || state.displays[0].id;
+      const initialAudio = user.studio?.mic || state.audioInputs[0].deviceId;
+      const initialPreset = user.studio?.preset || "SD";
+
+      setSelectedScreen(initialScreen);
+      setSelectedAudio(initialAudio);
+      setSelectedPreset(initialPreset);
+
+      // Send initial sources to studio tray
+      sendMediaSources(initialScreen, initialAudio, initialPreset);
+    }
+  }, [state.displays, state.audioInputs, user.studio]);
+
+  // Update local state when user or state props change
+  useEffect(() => {
+    const newScreen = user.studio?.screen || state.displays?.[0]?.id || '';
+    const newAudio = user.studio?.mic || state.audioInputs?.[0]?.deviceId || '';
+    const newPreset = user.studio?.preset || "SD";
+
+    setSelectedScreen(newScreen);
+    setSelectedAudio(newAudio);
+    setSelectedPreset(newPreset);
+
+    // Send updated sources to studio tray
+    if (newScreen && newAudio && newPreset) {
+      sendMediaSources(newScreen, newAudio, newPreset);
+    }
+  }, [user.studio, state.displays, state.audioInputs]);
+
+  const handleScreenChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedScreen(e.target.value);
+  };
+
+  const handleAudioChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedAudio(e.target.value);
+  };
+
+  const handlePresetChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedPreset(e.target.value as "HD" | "SD");
+  };
 
   return (
     <form className="flex h-full relative w-full flex-col gap-y-5">
@@ -65,7 +106,8 @@ export const MediaConfiguration = ({ user, state }: MediaConfigurationProps) => 
         <Monitor fill="#575655" color="#575655" size={36} />
         <select
           {...register("screen")}
-          value={user.studio?.screen || state.displays?.[0]?.id || ''}
+          value={selectedScreen}
+          onChange={handleScreenChange}
           className="outline-none cursor-pointer px-5 py-2 rounded-xl border-2 text-white border-[#575655] bg-transparent w-full">
           {state.displays?.map((display) => (
             <option
@@ -81,7 +123,8 @@ export const MediaConfiguration = ({ user, state }: MediaConfigurationProps) => 
         <Headphones color="#575655" size={36} />
         <select
           {...register("audio")}
-          value={user.studio?.mic || state.audioInputs?.[0]?.deviceId || ''}
+          value={selectedAudio}
+          onChange={handleAudioChange}
           className="outline-none cursor-pointer px-5 py-2 rounded-xl border-2 text-white border-[#575655] bg-transparent w-full">
           {state.audioInputs?.map((device) => (
             <option
@@ -97,7 +140,8 @@ export const MediaConfiguration = ({ user, state }: MediaConfigurationProps) => 
         <Settings color="#575655" size={36} />
         <select
           {...register("preset")}
-          value={user.studio?.preset || "SD"}
+          value={selectedPreset}
+          onChange={handlePresetChange}
           className="outline-none cursor-pointer px-5 py-2 rounded-xl border-2 text-white border-[#575655] bg-transparent w-full">
           <option
             disabled={user.subscription?.plan === "FREE"}
