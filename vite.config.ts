@@ -15,7 +15,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, "index.html"),
         studio_main: resolve(__dirname, "studio.html"),
-        web_cam_main: resolve(__dirname, "webcam.html"),
+        web_cam_main: resolve(__dirname, "floating-webcam.html"),
       },
     },
   },

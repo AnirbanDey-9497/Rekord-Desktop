@@ -1,30 +1,38 @@
-import React from 'react';
+// import React from 'react';
+
+import { WebCam } from "./components/WebCam";
+
+// function App() {
+//   const handleClose = () => {
+//     window.ipcRenderer.send('hideOrCloseWindow');
+//   };
+//   return (
+//     <div style={{ position: 'relative', padding: 16 }}>
+//       <button
+//         onClick={handleClose}
+//         style={{
+//           position: 'absolute',
+//           top: 8,
+//           right: 8,
+//           background: 'transparent',
+//           border: 'none',
+//           fontSize: 24,
+//           cursor: 'pointer',
+//           color: '#888',
+//         }}
+//         aria-label="Close"
+//       >
+//         ×
+//       </button>
+//       <h1>WebCam App</h1>
+//     </div>
+//   );
+// }
+
+// export default App;
 
 function App() {
-  const handleClose = () => {
-    window.ipcRenderer.send('hideOrCloseWindow');
-  };
-  return (
-    <div style={{ position: 'relative', padding: 16 }}>
-      <button
-        onClick={handleClose}
-        style={{
-          position: 'absolute',
-          top: 8,
-          right: 8,
-          background: 'transparent',
-          border: 'none',
-          fontSize: 24,
-          cursor: 'pointer',
-          color: '#888',
-        }}
-        aria-label="Close"
-      >
-        ×
-      </button>
-      <h1>WebCam App</h1>
-    </div>
-  );
+  return <WebCam />
 }
 
 export default App;
