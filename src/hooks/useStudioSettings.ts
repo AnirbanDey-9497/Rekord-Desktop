@@ -35,36 +35,61 @@ export const useStudioSettings = (
     },
   });
 
+  const sendMediaSources = (
+    screen: string,
+    audio: string,
+    preset: "HD" | "SD"
+  ) => {
+    console.log("[useStudioSettings] Sending media sources:", {
+      screen,
+      id,
+      audio,
+      preset,
+      plan,
+    });
+    window.ipcRenderer.send("media-sources", {
+      screen,
+      id,
+      audio,
+      preset,
+      plan,
+    });
+  };
+
   useEffect(() => {
     //set sources on mount
-    if (screen && audio && preset)
-      window.ipcRenderer.send("media-sources", {
+    if (screen && audio && preset) {
+      console.log("[useStudioSettings] Initial media sources available");
+      sendMediaSources(screen, audio, preset);
+    } else {
+      console.log("[useStudioSettings] Waiting for media sources:", {
         screen,
-        id: id,
         audio,
         preset,
-        plan,
       });
-  }, []);
+    }
+  }, [screen, audio, preset]);
 
   useEffect(() => {
     //set sources on change
     const subscribe = watch((values) => {
+      console.log("[useStudioSettings] Media sources changed:", values);
       setPreset(values.preset);
+      
+      if (!values.screen || !values.audio || !values.preset) {
+        console.log("[useStudioSettings] Incomplete media sources:", values);
+        return;
+      }
+
       mutate({
         screen: values.screen!,
         id: id,
         audio: values.audio!,
         preset: values.preset!,
       });
+
       //we send the user id to the second screen to sync the studio tray
-      window.ipcRenderer.send("media-sources", {
-        screen: values.screen,
-        id: id,
-        audio: values.audio,
-        preset: values.preset,
-        plan,
-      });
+      sendMediaSources(values.screen, values.audio, values.preset);
     });
     return () => subscribe.unsubscribe();
   }, [watch]);

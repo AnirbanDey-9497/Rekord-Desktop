@@ -29,6 +29,7 @@ let studio: BrowserWindow | null;
 let floatingWebCam: BrowserWindow | null;
 
 function createWindow() {
+  console.log('Creating main window...');
   win = new BrowserWindow({
     width: 600,
     height: 600,
@@ -36,8 +37,8 @@ function createWindow() {
     minWidth: 300,
     frame: false,
     transparent: true,
-    alwaysOnTop: true,
-    focusable: false,
+    alwaysOnTop: false,
+    focusable: true,
     icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
     webPreferences: {
       nodeIntegration: false,
@@ -46,7 +47,9 @@ function createWindow() {
       preload: path.join(__dirname, "preload.mjs"),
     },
   });
+  console.log('Main window created with ID:', win.id);
 
+  console.log('Creating studio window...');
   studio = new BrowserWindow({
     width: 400,
     height: 50,
@@ -57,7 +60,8 @@ function createWindow() {
     frame: false,
     transparent: true,
     alwaysOnTop: true,
-    focusable: false,
+    focusable: true,
+    movable: true,
     icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
     webPreferences: {
       nodeIntegration: false,
@@ -66,7 +70,9 @@ function createWindow() {
       preload: path.join(__dirname, "preload.mjs"),
     },
   });
+  console.log('Studio window created with ID:', studio.id);
 
+  console.log('Creating floating webcam window...');
   floatingWebCam = new BrowserWindow({
     width: 400,
     height: 200,
@@ -86,31 +92,41 @@ function createWindow() {
       preload: path.join(__dirname, "preload.mjs"),
     },
   });
+  console.log('Floating webcam window created with ID:', floatingWebCam.id);
 
-
+  console.log('Setting window properties...');
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-  win.setAlwaysOnTop(true, "screen-saver", 1);
+  win.setAlwaysOnTop(false, "screen-saver", 1);
   studio.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-  studio.setAlwaysOnTop(true, "screen-saver", 1);
+  studio.setAlwaysOnTop(false, "screen-saver", 1);
 
   // Test active push message to Renderer-process.
   win.webContents.on('did-finish-load', () => {
+    console.log('Main window loaded');
     win?.webContents.send('main-process-message', (new Date).toLocaleString())
   })
 
   studio.webContents.on("did-finish-load", () => {
+    console.log('Studio window loaded');
     studio?.webContents.send(
       "main-process-message",
       new Date().toLocaleString()
     );
+    // Set initial size after window loads
+    studio?.setSize(400, 250);
+  });
+
+  studio.webContents.on('console-message', (event, level, message, line, sourceId) => {
+    console.log(`Studio window console [${level}]: ${message}`);
   });
 
   if (VITE_DEV_SERVER_URL) {
+    console.log('Loading development URLs...');
     win.loadURL(VITE_DEV_SERVER_URL)
     studio.loadURL("http://localhost:5173/studio.html");
     floatingWebCam.loadURL("http://localhost:5173/floating-webcam.html");
   } else {
-    // win.loadFile('dist/index.html')
+    console.log('Loading production files...');
     win.loadFile(path.join(RENDERER_DIST, 'index.html'))
     studio.loadFile(path.join(RENDERER_DIST, 'studio.html'))
     floatingWebCam.loadFile(path.join(RENDERER_DIST, 'floating-webcam.html'))
@@ -141,31 +157,53 @@ ipcMain.on("closeApp", () => {
 
 ipcMain.handle("getSources", async () => {
   try {
+    console.log("[Main] Getting desktop sources");
     const sources = await desktopCapturer.getSources({
       thumbnailSize: { height: 100, width: 150 },
       fetchWindowIcons: true,
       types: ["window", "screen"],
     });
-    console.log(sources);
+    console.log("[Main] Desktop sources:", sources.map(s => ({ id: s.id, name: s.name })));
     return sources;
   } catch (error) {
-    console.error("Error getting sources:", error);
+    console.error("[Main] Error getting sources:", error);
     throw error;
   }
 });
 
 ipcMain.on("media-sources", (event, payload) => {
-  console.log(event);
-  studio?.webContents.send("profile-recieved", payload);
+  try {
+    console.log("[Main] Received media sources from renderer:", payload);
+    if (!studio) {
+      console.error("[Main] Studio window not available");
+      return;
+    }
+    if (!payload || !payload.screen || !payload.audio || !payload.id) {
+      console.error("[Main] Invalid media sources payload:", payload);
+      return;
+    }
+    console.log("[Main] Sending media sources to studio window");
+    studio.webContents.send("profile-received", payload);
+  } catch (error) {
+    console.error("[Main] Error handling media sources:", error);
+  }
 });
 
 ipcMain.on("resize-studio", (event, payload) => {
-  console.log(event);
-  if (payload.shrink) {
-    studio?.setSize(400, 100);
-  }
-  if (!payload.shrink) {
-    studio?.setSize(400, 250);
+  try {
+    console.log("[Main] Resizing studio window:", payload);
+    if (!studio) {
+      console.error("[Main] Studio window not available");
+      return;
+    }
+    if (payload.shrink) {
+      studio.setSize(400, 100);
+    }
+    if (!payload.shrink) {
+      studio.setSize(400, 250);
+    }
+  } catch (error) {
+    console.error("[Main] Error resizing studio window:", error);
   }
 });
 

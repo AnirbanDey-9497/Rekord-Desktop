@@ -2,10 +2,17 @@ body {
   margin: 0;
   padding: 0;
   background: transparent;
-  -webkit-app-region: drag;
   height: 100vh;
   overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.draggable {
+  -webkit-app-region: drag;
+}
+
+.non-draggable {
+  -webkit-app-region: no-drag;
 }
 
 .studio-container {
