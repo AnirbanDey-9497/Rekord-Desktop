@@ -8,6 +8,19 @@ const socket = io(import.meta.env.VITE_SOCKET_URL as string, {
   transports: ['websocket', 'polling']
 });
 
+// // Add connection event handlers
+// socket.on('connect', () => {
+//   console.log('[Socket.IO] Connected to server');
+// });
+
+// socket.on('connect_error', (error) => {
+//   console.error('[Socket.IO] Connection error:', error);
+// });
+
+// socket.on('disconnect', (reason) => {
+//   console.log('[Socket.IO] Disconnected:', reason);
+// });
+
 let mediaRecorder: MediaRecorder | null = null;
 let videoTransferFileName: string | undefined;
 let userId: string;
@@ -80,22 +93,29 @@ export const StartRecording = (onSources: {
   audio: string;
   id: string;
 }) => {
+  console.log('[Recorder] Starting recording with sources:', onSources);
   if (!mediaRecorder) {
-    console.error("MediaRecorder not initialized");
+    console.error("[Recorder] MediaRecorder not initialized");
     return;
   }
   hidePluginWindow(true);
   videoTransferFileName = `${uuid()}-${onSources?.id.slice(0, 8)}.webm`;
+  console.log('[Recorder] Starting MediaRecorder with filename:', videoTransferFileName);
   mediaRecorder.start(1000);
+  console.log('[Recorder] MediaRecorder started');
 };
 
 const onDataAvailable = (e: BlobEvent) => {
-  // TODO: Implement socket.io video chunk sending
+  console.log('[Recorder] Video chunk available, size:', e.data.size);
+  if (!socket.connected) {
+    console.error('[Recorder] Socket not connected, cannot send video chunk');
+    return;
+  }
   socket.emit("video-chunks", {
     chunks: e.data,
     filename: videoTransferFileName,
   });
-  console.log("Video chunk available:", e.data.size);
+  console.log('[Recorder] Video chunk sent to server');
 };
 
 export const onStopRecording = () => {
@@ -105,6 +125,11 @@ export const onStopRecording = () => {
 };
 
 const stopRecording = () => {
+  console.log('[Recorder] Stopping recording');
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+    console.log('[Recorder] MediaRecorder stopped');
+  }
   hidePluginWindow(false);
   // TODO: Implement socket.io video processing
   socket.emit("process-video", {

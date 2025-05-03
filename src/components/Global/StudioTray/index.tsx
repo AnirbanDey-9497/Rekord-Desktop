@@ -138,8 +138,12 @@ export const StudioTray = () => {
 
   // Handle recording timer
   useEffect(() => {
-    if (!recording) return;
+    if (!recording) {
+      console.log('[StudioTray] Recording is not active, timer not started');
+      return;
+    }
     
+    console.log('[StudioTray] Starting recording timer');
     initialTime = new Date(); // Reset initial time when recording starts
     const recordTimeInteval = setInterval(() => {
       const time = count + (new Date().getTime() - initialTime.getTime());
@@ -148,29 +152,37 @@ export const StudioTray = () => {
       
       // Stop recording after 5 minutes for FREE plan
       if (onSources?.plan === "FREE" && recordingTime.minute === "05") {
+        console.log('[StudioTray] Free plan 5-minute limit reached, stopping recording');
         setRecording(false);
         clearTime();
         onStopRecording();
       }
       
       setOnTimer(recordingTime.length);
+      console.log('[StudioTray] Timer updated:', recordingTime.length);
       
       if (time <= 0) {
+        console.log('[StudioTray] Timer reached zero');
         setOnTimer("00:00:00");
         clearInterval(recordTimeInteval);
       }
-    }, 1000); // Changed to 1000ms for better performance
+    }, 1000);
 
-    return () => clearInterval(recordTimeInteval);
+    return () => {
+      console.log('[StudioTray] Cleaning up timer interval');
+      clearInterval(recordTimeInteval);
+    };
   }, [recording, count]);
 
   // Handle recording start
   const handleStartRecording = () => {
+    console.log('[StudioTray] Start recording clicked');
     if (!onSources) {
       console.error("[StudioTray] Cannot start recording without sources");
       setError("Cannot start recording without sources");
       return;
     }
+    console.log('[StudioTray] Starting recording with sources:', onSources);
     setRecording(true);
     setCount(0);
     StartRecording(onSources);
@@ -178,6 +190,7 @@ export const StudioTray = () => {
 
   // Handle recording stop
   const handleStopRecording = () => {
+    console.log('[StudioTray] Stop recording clicked');
     setRecording(false);
     clearTime();
     onStopRecording();
