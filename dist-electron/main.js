@@ -64,6 +64,7 @@ function createWindow() {
     transparent: true,
     alwaysOnTop: true,
     focusable: false,
+    resizable: true,
     icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
     webPreferences: {
       nodeIntegration: false,
