@@ -45,6 +45,15 @@ A modern desktop application built with Electron, React, and TypeScript for scre
   - Socket.IO for real-time data streaming
   - IPC (Inter-Process Communication) for window management
   - Chunk-based data transfer to Record-Express application
+ 
+## Screen Cast Preview
+
+Rekord Desktop provides a real-time preview of your screen recording session. As you select a window or screen to record, a live cast of the selected area is displayed within the app interface. This ensures you always know exactly what is being captured, giving you full control and confidence over your recordings.
+
+**Key Benefits:**
+- Live preview of the selected screen/window
+- Instantly verify what's being recorded
+- Seamless integration with webcam overlay and audio selection
 
 ## Prerequisites
 
