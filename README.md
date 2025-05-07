@@ -55,6 +55,10 @@ Rekord Desktop provides a real-time preview of your screen recording session. As
 - Instantly verify what's being recorded
 - Seamless integration with webcam overlay and audio selection
 
+## Media Sources
+
+Rekord Desktop allows you to easily select your video (screen or window), audio input (microphone or system audio), and recording quality (such as 720p or 1080p) before starting a session. This flexible media source management ensures you always capture exactly what you need, with a real-time preview so you can verify your setup before recording.
+
 ## Prerequisites
 
 - Node.js (Latest LTS version recommended)
