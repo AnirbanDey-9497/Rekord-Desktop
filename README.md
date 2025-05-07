@@ -163,6 +163,17 @@ The application uses IPC for:
 - `npm run lint` - Run ESLint
 - `npm run preview` - Preview production build
 
+## Ecosystem & Usage
+
+**Rekord Desktop is not a standalone application.**  
+It is designed to work in conjunction with the following services for a complete, end-to-end video recording and processing workflow:
+
+- [**Rekord-Express**](https://github.com/AnirbanDey-9497/Rekord-Express): The real-time video processing backend that handles video chunking, storage (AWS S3), CDN delivery (CloudFront), and AI-powered analysis.
+- [**Rekord**](https://github.com/AnirbanDey-9497/Rekord): The frontend platform for video management, sharing, and advanced features like transcription, summaries, and interactive Q&A.
+
+To use Rekord Desktop, you must have both Rekord-Express and Rekord set up and running as part of the Rekord ecosystem.
+
+
 ## Contributing
 
 1. Fork the repository
